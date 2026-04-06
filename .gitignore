@@ -1,17 +1,10 @@
-# Dependências (nunca envie essas pastas)
 node_modules/
 bin/
 obj/
-
-# Variáveis de Ambiente (Segurança!)
 .env
 *.local
-
-# Arquivos do Sistema Operacional
 .DS_Store
 Thumbs.db
-
-# Logs e arquivos temporários
 *.log
 npm-debug.log*
 dist/
