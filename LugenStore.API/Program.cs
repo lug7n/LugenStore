@@ -2,7 +2,10 @@ using LugenStore.API.Data;
 using LugenStore.API.Repositories;
 using LugenStore.API.Repositories.Interfaces;
 using LugenStore.API.Services;
+using LugenStore.API.Services.Auth;
 using LugenStore.API.Services.Interfaces;
+using LugenStore.API.Services.Security.Hash;
+using LugenStore.API.Services.Security.Token;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,10 +15,20 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 
 builder.Services.AddScoped<IGameRepository, GameRepository>();
 builder.Services.AddScoped<IGameService, GameService>();
+
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IGenreService, GenreService>();
+
 builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
 builder.Services.AddScoped<IPublisherService, PublisherService>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<AuthService>();
+
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -19,14 +19,8 @@ public class GenreService : IGenreService
 
     private async Task ValidateGenre(GenreBaseDto dto)
     {
-        if (dto is null)
-            throw new ValidationException("Genre is required.");
-
         dto.Name = dto.Name.Trim();
         dto.Name = Regex.Replace(dto.Name, @"\s+", " ");
-
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new ValidationException("Genre name is required.");
 
         if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
             throw new ValidationException("Genre name can only contain letters, numbers, spaces, and basic punctuation.");
@@ -45,9 +39,6 @@ public class GenreService : IGenreService
 
     public async Task<GenreResponseDto?> GetByIdAsync(Guid id)
     {
-        if (id == Guid.Empty)
-            throw new ValidationException("Id cannot be empty.");
-
         var genre = await _repository.GetByIdAsync(id);
 
         if (genre is null)
@@ -108,10 +99,7 @@ public class GenreService : IGenreService
     }
 
     public async Task<bool> DeleteAsync(Guid id)
-    {
-        if (id == Guid.Empty)
-            throw new ValidationException("Id cannot be empty.");
-
+    { 
         var deleted = await _repository.DeleteAsync(id);
 
         if(!deleted)
