@@ -1,5 +1,4 @@
 ﻿using LugenStore.API.Common.Validation;
-using LugenStore.API.DTOs.Genre;
 using LugenStore.API.DTOs.Publisher;
 using LugenStore.API.Exceptions;
 using LugenStore.API.Models;
@@ -20,14 +19,8 @@ public class PublisherService : IPublisherService
 
     private async Task ValidatePublisher (PublisherBaseDto dto)
     {
-        if (dto is null)
-            throw new ValidationException("Publisher is required.");
-
         dto.Name = dto.Name.Trim();
         dto.Name = Regex.Replace(dto.Name, @"\s+", " ");
-
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new ValidationException("Publisher name is required.");
 
         if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
             throw new ValidationException("Publisher name can only contain letters, numbers, spaces, and basic punctuation.");
@@ -45,9 +38,6 @@ public class PublisherService : IPublisherService
 
     public async Task<PublisherResponseDto?> GetByIdAsync(Guid id)
     {
-        if (id == Guid.Empty)
-            throw new ValidationException("Id cannot be empty.");
-
         var publisher = await _repository.GetByIdAsync(id);
 
         if (publisher is null)
@@ -110,9 +100,6 @@ public class PublisherService : IPublisherService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        if (id == Guid.Empty)
-            throw new ValidationException("Id cannot be empty.");
-
         var deleted = await _repository.DeleteAsync(id);
 
         if(!deleted)

@@ -4,7 +4,7 @@ namespace LugenStore.API.Repositories.Interfaces;
 
 public interface IGameRepository
 {
-    Task<IEnumerable<Game>> GetAllAsync ();
+    Task<IEnumerable<Game>> GetAllAsync();
     Task<Game?> GetByIdAsync(Guid id);
     Task CreateAsync(Game game);
     Task UpdateAsync(Game game);

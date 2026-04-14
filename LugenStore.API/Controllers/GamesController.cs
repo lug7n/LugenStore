@@ -1,6 +1,7 @@
 ﻿using LugenStore.API.DTOs.Game;
 using LugenStore.API.Exceptions;
 using LugenStore.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LugenStore.API.Controllers;
@@ -41,6 +42,7 @@ public class GamesController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGameDto dto) 
     {
@@ -55,6 +57,7 @@ public class GamesController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameDto dto)
     {
@@ -73,6 +76,7 @@ public class GamesController : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task <IActionResult> DeleteById([FromRoute] Guid id)
     {
