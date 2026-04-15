@@ -256,11 +256,11 @@ LugenStore.API/
 
 ```json
 {
-  "id": 2fccb4b6-2e48-40f1-81c1-75ad04ff03c7
+  "id": "2fccb4b6-2e48-40f1-81c1-75ad04ff03c7"
   "name": "Jonh Doe",
   "cpf": "12345678911",
-  "email": jonhdoe@email.com,
-  "createdAt": 2026-04-15T16:21:02.0684431Z
+  "email": "jonhdoe@email.com",
+  "createdAt": "2026-04-15T16:21:02.0684431Z"
   ]
 }
 ```
