@@ -5,16 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LugenStore.API.Repositories;
 
-public class GameRepository : IGameRepository
+public class GameRepository(AppDbContext _context) : IGameRepository
 {
-
-    private readonly AppDbContext _context;
-
-    public GameRepository(AppDbContext context) 
-    {
-        _context = context;
-    }
-
     public async Task<IEnumerable<Game>> GetAllAsync()
     {
         return await _context.Games

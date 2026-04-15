@@ -8,19 +8,12 @@ using System.Text.RegularExpressions;
 
 namespace LugenStore.API.Services;
 
-public class GenreService : IGenreService
+public partial class GenreService(IGenreRepository _repository) : IGenreService
 {
-    private readonly IGenreRepository _repository;
-
-    public GenreService(IGenreRepository repository)
-    {
-        _repository = repository;
-    }
-
-    private async Task ValidateGenre(GenreBaseDto dto)
+    private static void ValidateGenre(GenreBaseDto dto)
     {
         dto.Name = dto.Name.Trim();
-        dto.Name = Regex.Replace(dto.Name, @"\s+", " ");
+        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
 
         if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
             throw new ValidationException("Genre name can only contain letters, numbers, spaces, and basic punctuation.");
@@ -41,6 +34,9 @@ public class GenreService : IGenreService
     {
         var genre = await _repository.GetByIdAsync(id);
 
+        if (id == Guid.Empty)
+            throw new ValidationException("Id cannot be empty.");
+
         if (genre is null)
             throw new NotFoundException($"Genre with id {id} not found.");
 
@@ -53,12 +49,10 @@ public class GenreService : IGenreService
 
     public async Task<GenreResponseDto> CreateAsync(CreateGenreDto dto)
     {
-        var duplicate = await _repository.ExistsByNameAsync(dto.Name); 
+        ValidateGenre(dto);
 
-        await ValidateGenre(dto);
-
-        if (duplicate)
-            throw new ValidationException($"Genre with name {dto.Name} already exists");
+        if (await _repository.ExistsByNameAsync(dto.Name))
+            throw new InvalidOperationException($"Genre with name {dto.Name} already exists");
         
         var genre = new Genre
         {
@@ -76,10 +70,10 @@ public class GenreService : IGenreService
     }
     public async Task<bool> UpdateAsync(UpdateGenreDto dto)
     {
+        ValidateGenre(dto);
+
         var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
         var genreExists = await _repository.ExistsByIdAsync(dto.Id);
-
-        await ValidateGenre(dto);
 
         if (duplicate)
             throw new ValidationException($"Genre with name {dto.Name} already exists.");
@@ -99,12 +93,21 @@ public class GenreService : IGenreService
     }
 
     public async Task<bool> DeleteAsync(Guid id)
-    { 
+    {
+        if (id == Guid.Empty)
+            throw new ValidationException("Id cannot be empty");
+
         var deleted = await _repository.DeleteAsync(id);
 
         if(!deleted)
             throw new NotFoundException($"Genre with id {id} not found."); 
 
         return true;
+    }
+
+    internal static partial class GeneratedRegexes
+    {
+        [GeneratedRegex(@"\s+")]
+        internal static partial Regex WhitespaceRegex();
     }
 }

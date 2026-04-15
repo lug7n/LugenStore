@@ -6,17 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LugenStore.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class GamesController : ControllerBase
+public class GamesController(IGameService _service) : ControllerBase
 {
-    private readonly IGameService _service;
-
-    public GamesController(IGameService service)
-    {
-        _service = service;
-    }
-
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -24,13 +19,14 @@ public class GamesController : ControllerBase
         return Ok(game);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         try
         {
-            var game = await _service.GetByIdAsync(id);
-            return Ok(game);
+            var games = await _service.GetByIdAsync(id);
+            return Ok(games);
         }
         catch (NotFoundException ex)
         {
@@ -42,7 +38,7 @@ public class GamesController : ControllerBase
         }
     }
 
-    [Authorize]
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGameDto dto) 
     {
@@ -55,14 +51,21 @@ public class GamesController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+
     }
 
-    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGameDto dto)
     {
         try
         {
+            if (id != dto.Id)
+                return BadRequest("Route id and body id must match");
+
             await _service.UpdateAsync(dto);
             return NoContent();
         }
@@ -74,11 +77,14 @@ public class GamesController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
-    [Authorize]
     [HttpDelete("{id}")]
-    public async Task <IActionResult> DeleteById([FromRoute] Guid id)
+    public async Task <IActionResult> Delete([FromRoute] Guid id)
     {
         try
         {
