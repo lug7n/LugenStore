@@ -159,31 +159,46 @@ LugenStore.API/
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/games` | List all games |
-| `GET` | `/api/games/{id}` | Get game by ID |
-| `POST` | `/api/games` | Create a new game |
-| `PUT` | `/api/games/{id}` | Update a game |
-| `DELETE` | `/api/games/{id}` | Delete a game |
+| `GET` | `/api/Games` | List all games |
+| `GET` | `/api/Games/{id}` | Get game by ID |
+| `POST` | `/api/Games` | Create a new game |
+| `PUT` | `/api/Games/{id}` | Update a game |
+| `DELETE` | `/api/Games/{id}` | Delete a game |
 
 ### 🏷 Genres
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/genres` | List all genres |
-| `GET` | `/api/genres/{id}` | Get genre by ID |
-| `POST` | `/api/genres` | Create a new genre |
-| `PUT` | `/api/genres/{id}` | Update a genre |
-| `DELETE` | `/api/genres/{id}` | Delete a genre |
+| `GET` | `/api/Genres` | List all genres |
+| `GET` | `/api/Genres/{id}` | Get genre by ID |
+| `POST` | `/api/Genres` | Create a new genre |
+| `PUT` | `/api/Genres/{id}` | Update a genre |
+| `DELETE` | `/api/Genres/{id}` | Delete a genre |
 
 ### 🏢 Publishers
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/publishers` | List all publishers |
-| `GET` | `/api/publishers/{id}` | Get publisher by ID |
-| `POST` | `/api/publishers` | Create a new publisher |
-| `PUT` | `/api/publishers/{id}` | Update a publisher |
-| `DELETE` | `/api/publishers/{id}` | Delete a publisher |
+| `GET` | `/api/Publishers` | List all publishers |
+| `GET` | `/api/Publishers/{id}` | Get publisher by ID |
+| `POST` | `/api/Publishers` | Create a new publisher |
+| `PUT` | `/api/Publishers/{id}` | Update a publisher |
+| `DELETE` | `/api/Publishers/{id}` | Delete a publisher |
+
+### 🔐 Auth
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/Auth/register` | Register a user |
+| `POST` | `/api/Auth/login` | User login |
+
+### 👨‍🦱 Users
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/User/{id}` | Get user by ID |
+| `PUT` | `/api/User/{id}` | Update user settings |
+| `DELETE` | `/api/User/{id}` | Delete a user |
 
 ---
 
