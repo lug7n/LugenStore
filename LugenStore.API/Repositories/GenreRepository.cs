@@ -5,16 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LugenStore.API.Repositories
 {
-    public class GenreRepository : IGenreRepository
+    public class GenreRepository(AppDbContext _context) : IGenreRepository
     {
-
-        private readonly AppDbContext _context;
-
-        public GenreRepository(AppDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Genre>> GetAllAsync()
         {
             return await _context.Genres.ToListAsync();

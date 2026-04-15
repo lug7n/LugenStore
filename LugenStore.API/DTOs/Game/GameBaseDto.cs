@@ -11,6 +11,7 @@ public class GameBaseDto
     [Required(ErrorMessage = "Game price is required")]
     public decimal Price { get; set; }
 
+    [Required(ErrorMessage = "Description is required")]
     [StringLength(2000, MinimumLength = 30)]
     public string Description { get; set; } = string.Empty;
 

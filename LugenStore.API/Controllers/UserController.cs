@@ -1,4 +1,4 @@
-﻿using LugenStore.API.DTOs.Genre;
+﻿using LugenStore.API.DTOs.User;
 using LugenStore.API.Exceptions;
 using LugenStore.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -9,24 +9,15 @@ namespace LugenStore.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class GenresController(IGenreService _service) : ControllerBase
+public class UserController(IUserService _service) : ControllerBase
 {
-    [AllowAnonymous]
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var genres = await _service.GetAllAsync();
-        return Ok(genres);
-    }
-
-    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] Guid id)
     {
         try
         {
-            var genre = await _service.GetByIdAsync(id);
-            return Ok(genre);
+            var user = await _service.GetByIdAsync(id);
+            return Ok(user);
         }
         catch (NotFoundException ex)
         {
@@ -38,26 +29,8 @@ public class GenresController(IGenreService _service) : ControllerBase
         }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)
-    {
-        try
-        {
-            var genre = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = genre.Id }, genre);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-
-    }
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateGenreDto dto)
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserDto dto)
     {
         try
         {
@@ -86,7 +59,7 @@ public class GenresController(IGenreService _service) : ControllerBase
     {
         try
         {
-            await _service.DeleteAsync(id);
+            var result = await _service.DeleteAsync(id);
             return NoContent();
         }
         catch (NotFoundException ex)
