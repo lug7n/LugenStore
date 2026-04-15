@@ -84,51 +84,71 @@ Request → Controller → Service → Repository → Database
 ```
 LugenStore.API/
 │
-├── Controllers/
+├── Controllers
+│   ├── AuthController.cs
 │   ├── GamesController.cs
 │   ├── GenresController.cs
-│   └── PublishersController.cs
+│   ├── PublishersController.cs
+│   └── UserController.cs
 │
-├── Services/
-│   ├── Interfaces/
-│   └── GameService.cs / GenreService.cs / PublisherService.cs
+├── Data
+│   ├── AppDbContext.cs
+│   └── Configurations
+│       ├── GameConfiguration.cs
+│       ├── GenreConfiguration.cs
+│       ├── PublisherConfiguration.cs
+│       └── UserConfiguration.cs
 │
-├── Repositories/
-│   ├── Interfaces/
-│   └── GameRepository.cs / GenreRepository.cs / PublisherRepository.cs
+├── DTOs
+│   ├── Auth
+│   ├── Game
+│   ├── Genre
+│   ├── Publisher
+│   └── User
 │
-├── Models/
+├── Models
 │   ├── Game.cs
 │   ├── Genre.cs
 │   ├── Publisher.cs
+│   ├── User.cs
 │   ├── Cart.cs
-│   ├── CartItem.cs
-│   └── User.cs
+│   └── CartItem.cs
 │
-├── DTOs/
-│   ├── Game/         → GameBaseDto, CreateGameDto, UpdateGameDto, GameResponseDto
-│   ├── Genre/        → GenreBaseDto, CreateGenreDto, UpdateGenreDto, GenreResponseDto
-│   └── Publisher/    → PublisherBaseDto, CreatePublisherDto, UpdatePublisherDto, PublisherResponseDto
+├── Services
+│   ├── Auth
+│   │   ├── AuthService.cs
+│   │   └── IAuthService.cs
+│   ├── Interfaces
+│   ├── Security
+│   │   ├── Hash
+│   │   └── Token
+│   ├── GameService.cs
+│   ├── GenreService.cs
+│   ├── PublisherService.cs
+│   └── UserService.cs
 │
-├── Data/
-│   ├── AppDbContext.cs
-│   └── Configurations/
-│       ├── GameConfiguration.cs
-│       ├── GenreConfiguration.cs
-│       └── PublisherConfiguration.cs
+├── Repositories
+│   ├── Interfaces
+│   ├── GameRepository.cs
+│   ├── GenreRepository.cs
+│   ├── PublisherRepository.cs
+│   └── UserRepository.cs
 │
-├── Common/
-│   └── Validation/
-│       └── ValidationPatterns.cs
+├── Common
+│   └── Validation
 │
-├── Exceptions/
+├── Exceptions
 │   ├── NotFoundException.cs
 │   └── ValidationException.cs
+│
+├── Validators
+│   └── CpfValidator.cs
 │
 ├── Program.cs
 ├── appsettings.json
 ├── appsettings.Development.json
-└── docker-compose.yml
+├── docker-compose.yml
+└── LugenStore.API.csproj
 ```
 
 ---
@@ -288,8 +308,8 @@ dotnet ef migrations remove
 - [x] DTO pattern (separation between API contracts and database models)
 - [x] EF Core Configurations (constraints, relationships, precision)
 - [x] Docker Compose for PostgreSQL
-- [ ] User registration and authentication
-- [ ] JWT authentication
+- [x] User registration and authentication
+- [x] JWT authentication
 - [ ] Shopping cart with price snapshot
 - [ ] Cart expiration logic
 - [ ] Observability (structured logging, metrics, tracing)
