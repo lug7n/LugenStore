@@ -237,6 +237,34 @@ LugenStore.API/
 
 ---
 
+### 📦 Example: User Register
+
+**POST** `/api/Auth/Register`
+
+```json
+{
+  "name": "Jonh Doe",
+  "cpf": "12345678911",
+  "email": jonhdoe@email.com,
+  "password": "doe123@",
+  "confirmPassword": "doe123@"
+  ]
+}
+```
+
+**Response 201 Created**
+
+```json
+{
+  "id": 2fccb4b6-2e48-40f1-81c1-75ad04ff03c7
+  "name": "Jonh Doe",
+  "cpf": "12345678911",
+  "email": jonhdoe@email.com,
+  "createdAt": 2026-04-15T16:21:02.0684431Z
+  ]
+}
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
