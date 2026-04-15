@@ -245,7 +245,7 @@ LugenStore.API/
 {
   "name": "Jonh Doe",
   "cpf": "12345678911",
-  "email": jonhdoe@email.com,
+  "email": "jonhdoe@email.com",
   "password": "doe123@",
   "confirmPassword": "doe123@"
   ]
