@@ -1,4 +1,5 @@
 ﻿using LugenStore.API.DTOs.Auth;
+using LugenStore.API.DTOs.User;
 using LugenStore.API.Exceptions;
 using LugenStore.API.Models;
 using LugenStore.API.Repositories.Interfaces;
@@ -11,31 +12,42 @@ namespace LugenStore.API.Services.Auth;
 
 public class AuthService(IUserRepository _repository, IPasswordHasher _passwordHasher, ITokenService _tokenService) : IAuthService
 {
-    private static void Normalize(AuthBaseDto dto)
+    private static void NormalizeRegister(RegisterDto dto)
     {
         dto.Name = dto.Name.Trim();
         dto.Email = dto.Email.Trim().ToLower();
         dto.Cpf = dto.Cpf.Trim();
-        dto.Password = dto.Password.Trim();
 
         dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
         dto.Cpf = GeneratedRegexes.WhitespaceRegex().Replace(dto.Cpf, " ");
+
+        if (dto.Email.Contains(' '))
+            throw new ValidationException("Email cannot contain spaces");
     }
-    public async Task RegisterAsync(RegisterDto dto)
+
+    private static void NormalizeLogin(LoginDto dto)
     {
-        Normalize(dto);
+        dto.Email = dto.Email.Trim().ToLower();
+
+        if (dto.Email.Contains(' '))
+            throw new ValidationException("Email cannot contain spaces");
+    }
+
+    public async Task<UserResponseDto> RegisterAsync(RegisterDto dto)
+    {
+        NormalizeRegister(dto);
 
         if (dto.Password != dto.ConfirmPassword)
             throw new ValidationException("Passwords do not match");
 
         if (await _repository.ExistsByCpfAsync(dto.Cpf))
-            throw new ValidationException("CPF already registered.");
+            throw new InvalidOperationException("CPF already registered");
 
         if (!CpfValidator.IsValid(dto.Cpf))
             throw new ValidationException("Invalid CPF");
 
         if (await _repository.ExistsByEmailAsync(dto.Email))
-            throw new ValidationException("Email already registered");
+            throw new InvalidOperationException("Email already registered");
 
         if (GeneratedRegexes.WhitespaceCharRegex().IsMatch(dto.Password))
             throw new ValidationException("Password cannot contain spaces");
@@ -51,11 +63,19 @@ public class AuthService(IUserRepository _repository, IPasswordHasher _passwordH
         };
 
         await _repository.CreateAsync(user);
+
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            CreatedAt = user.CreatedAt
+        };
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
-        Normalize(dto);
+        NormalizeLogin(dto);
 
         var user = await _repository.GetByEmailAsync(dto.Email);
 

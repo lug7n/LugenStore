@@ -35,5 +35,7 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder.HasMany(g => g.Genres)
             .WithMany(g => g.Games)
             .UsingEntity(j => j.ToTable("GameGenres")); // Configure many-to-many relationship with a join table
+
+        builder.HasIndex(u => u.Name).IsUnique();
     }
 }

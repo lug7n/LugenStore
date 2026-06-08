@@ -5,15 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LugenStore.API.Repositories;
 
-public class PublisherRepository : IPublisherRepository
+public class PublisherRepository(AppDbContext _context) : IPublisherRepository
 {
-    private readonly AppDbContext _context;
-
-    public PublisherRepository(AppDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<IEnumerable<Publisher>> GetAllAsync()
     {
         return await _context.Publisher.ToListAsync();

@@ -9,7 +9,6 @@ namespace LugenStore.API.Services;
 
 public partial class UserService(IUserRepository _repository) : IUserService
 {
-
     private static void Normalize(UserBaseDto dto)
     {
         dto.Name = dto.Name.Trim();
@@ -66,6 +65,8 @@ public partial class UserService(IUserRepository _repository) : IUserService
     {
         if (id == Guid.Empty)
             throw new ValidationException("Id cannot be empty");
+
+        var deleted = await _repository.DeleteAsync(id);
 
         if(!await _repository.DeleteAsync(id))
             throw new NotFoundException($"User with id {id} not found.");

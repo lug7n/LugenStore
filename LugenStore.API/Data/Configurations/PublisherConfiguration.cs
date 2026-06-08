@@ -15,6 +15,8 @@ namespace LugenStore.API.Data.Configurations
             builder.Property(g => g.Name)
                 .IsRequired()
                 .HasMaxLength(20);
+
+            builder.HasIndex(u => u.Name).IsUnique();
         }
     }
 }

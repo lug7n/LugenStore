@@ -13,7 +13,7 @@ public class UserRepository(AppDbContext _context) : IUserRepository
     }
     public async Task<User?> GetByEmailAsync(string email)
     {
-        return await _context.User.FindAsync(email);
+        return await _context.User.FirstOrDefaultAsync(u => u.Email == email);
     }
     public async Task CreateAsync(User user)
     {

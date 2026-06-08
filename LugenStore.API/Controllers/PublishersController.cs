@@ -1,21 +1,17 @@
 ﻿using LugenStore.API.DTOs.Publisher;
 using LugenStore.API.Exceptions;
 using LugenStore.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LugenStore.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class PublishersController : ControllerBase
+    public class PublishersController(IPublisherService _service) : ControllerBase
     {
-        private readonly IPublisherService _service;
-
-        public PublishersController(IPublisherService service)
-        {
-            _service = service;
-        }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -23,6 +19,7 @@ namespace LugenStore.API.Controllers
             return Ok(publishers);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
@@ -54,6 +51,10 @@ namespace LugenStore.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
@@ -61,6 +62,9 @@ namespace LugenStore.API.Controllers
         {
             try
             {
+                if (id != dto.Id)
+                    return BadRequest("Route id and body id must match");
+
                 await _service.UpdateAsync(dto);
                 return NoContent();
             }
@@ -71,6 +75,10 @@ namespace LugenStore.API.Controllers
             catch (ValidationException ex)
             {
                 return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
             }
         }
 
