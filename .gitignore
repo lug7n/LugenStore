@@ -13,3 +13,4 @@ notations.md
 .vs/
 appsettings.json
 appsettings.Development.json
+docker-compose.yml
