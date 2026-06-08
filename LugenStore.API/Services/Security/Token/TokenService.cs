@@ -31,8 +31,8 @@ public class TokenService(IConfiguration config) : ITokenService
         };
 
         var token = new JwtSecurityToken(
-            issuer: "LugenStore.API",
-            audience: "LugenStore.Client",
+            issuer: "LugenStoreIssuer",
+            audience: "LugenStoreUsers",
             claims: claims,
             expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: credentials
