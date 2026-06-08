@@ -64,11 +64,12 @@ public partial class UserService(IUserRepository _repository) : IUserService
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var deleted = await _repository.DeleteAsync(id);
+        if (id == Guid.Empty)
+            throw new ValidationException("Id cannot be empty");
 
-        if (!deleted)
+        if(!await _repository.DeleteAsync(id))
             throw new NotFoundException($"User with id {id} not found.");
-
+            
         return true;
     }
 

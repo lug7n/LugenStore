@@ -8,7 +8,6 @@ namespace LugenStore.API.Services.Security.Token;
 
 public class TokenService(IConfiguration config) : ITokenService
 {
-
     public string GenerateToken(User user)
     {
         if (user is null)

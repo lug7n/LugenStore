@@ -1,6 +1,0 @@
-@LugenStore.API_HostAddress = http://localhost:5266
-
-GET {{LugenStore.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
