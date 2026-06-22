@@ -323,6 +323,7 @@ dotnet ef migrations remove
 - [x] User registration and authentication
 - [x] JWT authentication
 - [X] Clean Architecture
+- [ ] Elastic Search integration
 - [ ] Shopping cart with price snapshot
 - [ ] Cart expiration logic
 - [ ] Observability (structured logging, metrics, tracing)
