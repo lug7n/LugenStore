@@ -82,73 +82,41 @@ Request → Controller → Service → Repository → Database
 ## 📁 Project Structure
 
 ```
-LugenStore.API/
-│
-├── Controllers
-│   ├── AuthController.cs
-│   ├── GamesController.cs
-│   ├── GenresController.cs
-│   ├── PublishersController.cs
-│   └── UserController.cs
-│
-├── Data
-│   ├── AppDbContext.cs
-│   └── Configurations
-│       ├── GameConfiguration.cs
-│       ├── GenreConfiguration.cs
-│       ├── PublisherConfiguration.cs
-│       └── UserConfiguration.cs
-│
-├── DTOs
-│   ├── Auth
-│   ├── Game
-│   ├── Genre
-│   ├── Publisher
-│   └── User
-│
-├── Models
-│   ├── Game.cs
-│   ├── Genre.cs
-│   ├── Publisher.cs
-│   ├── User.cs
-│   ├── Cart.cs
-│   └── CartItem.cs
-│
-├── Services
-│   ├── Auth
-│   │   ├── AuthService.cs
-│   │   └── IAuthService.cs
+LugenStore/
+├── LugenStore.Application
+│   ├── DTOs
+│   │   ├── Auth
+│   │   ├── Cart
+│   │   ├── Game
+│   │   ├── Genre
+│   │   ├── Publisher
+│   │   └── User
 │   ├── Interfaces
-│   ├── Security
-│   │   ├── Hash
-│   │   └── Token
-│   ├── GameService.cs
-│   ├── GenreService.cs
-│   ├── PublisherService.cs
-│   └── UserService.cs
+│   ├── Services
+│   │   └── Auth
+│   └── Validators
 │
-├── Repositories
-│   ├── Interfaces
-│   ├── GameRepository.cs
-│   ├── GenreRepository.cs
-│   ├── PublisherRepository.cs
-│   └── UserRepository.cs
+├── LugenStore.Domain
+│   ├── Common
+│   │   └── Validation
+│   ├── Entities
+│   ├── Exceptions
+│   └── Interfaces
 │
-├── Common
-│   └── Validation
+├── LugenStore.Infrastructure
+│   ├── Persistence
+│   │   ├── Configurations
+│   │   └── Migrations
+│   ├── Repositories
+│   └── Security
+│       ├── Hash
+│       └── Token
 │
-├── Exceptions
-│   ├── NotFoundException.cs
-│   └── ValidationException.cs
-│
-├── Validators
-│   └── CpfValidator.cs
-│
-├── Program.cs
-├── appsettings.json
-├── appsettings.Development.json
-├── docker-compose.yml
-└── LugenStore.API.csproj
+└── LugenStore.WebAPI
+    ├── appsettings.Development.json
+    ├── appsettings.json
+    ├── docker-compose.yml
+    └── Program.cs
 ```
 
 ---
