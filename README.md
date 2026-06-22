@@ -315,6 +315,7 @@ dotnet ef migrations remove
 - [x] Games CRUD
 - [x] Genres CRUD
 - [x] Publishers CRUD
+- [X] User CRUD
 - [x] Layered architecture (Controllers / Services / Repositories)
 - [x] DTO pattern (separation between API contracts and database models)
 - [x] EF Core Configurations (constraints, relationships, precision)
