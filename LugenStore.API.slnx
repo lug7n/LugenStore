@@ -2,5 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path="notations.md" />
   </Folder>
-  <Project Path="LugenStore.API/LugenStore.API.csproj" />
+  <Project Path="LugenStore.API/LugenStore.WebAPI.csproj" />
+  <Project Path="LugenStore.Application/LugenStore.Application.csproj" />
+  <Project Path="LugenStore.Domain/LugenStore.Domain.csproj" />
+  <Project Path="LugenStore.Infrastructure/LugenStore.Infrastructure.csproj" />
 </Solution>

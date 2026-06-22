@@ -1,9 +1,8 @@
-﻿using LugenStore.API.DTOs.Auth;
-using LugenStore.API.Exceptions;
-using LugenStore.API.Services.Auth;
+﻿using LugenStore.Application.DTOs.Auth;
+using LugenStore.Application.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LugenStore.API.Controllers;
+namespace LugenStore.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

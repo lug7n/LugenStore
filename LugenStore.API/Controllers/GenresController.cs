@@ -1,10 +1,10 @@
-﻿using LugenStore.API.DTOs.Genre;
-using LugenStore.API.Exceptions;
-using LugenStore.API.Services.Interfaces;
+﻿using LugenStore.Application.DTOs.Genre;
+using LugenStore.Application.Interfaces;
+using LugenStore.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LugenStore.API.Controllers;
+namespace LugenStore.WebAPI.Controllers;
 
 [Authorize]
 [ApiController]
