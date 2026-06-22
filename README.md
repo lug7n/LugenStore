@@ -321,6 +321,7 @@ dotnet ef migrations remove
 - [x] Docker Compose for PostgreSQL
 - [x] User registration and authentication
 - [x] JWT authentication
+- [X] Clean Architecture
 - [ ] Shopping cart with price snapshot
 - [ ] Cart expiration logic
 - [ ] Observability (structured logging, metrics, tracing)
