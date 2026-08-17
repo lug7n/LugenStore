@@ -31,17 +31,7 @@ public class GameRepository(AppDbContext _context) : IGameRepository
 
     public async Task UpdateAsync(Game game)
     {
-        var existingGame = await _context.Games.FindAsync(game.Id);
-
-        if (existingGame is null)
-            return;
-
-        existingGame.Name = game.Name;
-        existingGame.Price = game.Price;
-        existingGame.Publisher = game.Publisher;    
-        existingGame.Genres = game.Genres;
-        existingGame.Description = game.Description;
-
+        _context.Games.Update(game);
         await _context.SaveChangesAsync();
     }
 

@@ -1,6 +1,5 @@
 using LugenStore.Application.DTOs.Game;
 using LugenStore.Application.Interfaces;
-using LugenStore.Domain.Common.Validation;
 using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
@@ -10,19 +9,10 @@ namespace LugenStore.Application.Services
 {
     public partial class GameService(IGameRepository _repository, IGenreRepository _genreRepository, IPublisherRepository _publisherRepository) : IGameService
     {
-        private static void ValidateGame(GameBaseDto dto)
+        private static void SanitizeInput(GameBaseDto dto)
         { 
-            dto.Name = dto.Name.Trim();
-            dto.Description = dto.Description.Trim();
-
             dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
             dto.Description = GeneratedRegexes.WhitespaceRegex().Replace(dto.Description, " ");
-
-            if (dto.Price < 0)
-                throw new ValidationException("Price cannot be negative.");
-
-            if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
-                throw new ValidationException("Game name can only contain letters, numbers, spaces, and basic punctuation.");
         }
 
         public async Task<IEnumerable<GameResponseDto>> GetAllAsync()
@@ -65,13 +55,12 @@ namespace LugenStore.Application.Services
 
         public async Task<GameResponseDto> CreateAsync(CreateGameDto dto)
         {
-            ValidateGame(dto);
-
-            var genres = new List<Genre>();
+            SanitizeInput(dto);
 
             if (dto.GenreId == null || dto.GenreId.Count == 0)
                 throw new ValidationException("At least one genre must be provided.");
 
+            var genres = new List<Genre>();
             foreach (var genreId in dto.GenreId)
             {
                 var genre = await _genreRepository.GetByIdAsync(genreId);
@@ -86,20 +75,12 @@ namespace LugenStore.Application.Services
             if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
                 throw new NotFoundException($"publisher with id {dto.PublisherId} not found.");
 
-            var game = new Game
-            {
-                Name = dto.Name,
-                Price = dto.Price,
-                PublisherId = dto.PublisherId,
-                Genres = genres,
-                Description = dto.Description,
-                CreatedAt = DateTime.UtcNow
-            };
-
+            var game = new Game(dto.Name, dto.Price, dto.Description, dto.PublisherId, genres);
+           
             await _repository.CreateAsync(game);
 
             var createdGame = await _repository.GetByIdAsync(game.Id)
-                ?? throw new NotFoundException($"Game with id {game.Id} not found after creation."); // This should never happen, but we want to be sure.
+                ?? throw new NotFoundException($"Game with id {game.Id} not found after creation.");
 
             return new GameResponseDto
             {
@@ -116,9 +97,7 @@ namespace LugenStore.Application.Services
 
         public async Task<bool> UpdateAsync(UpdateGameDto dto)
         {
-            var genres = new List<Genre>();
-
-            ValidateGame(dto);
+            SanitizeInput(dto);
 
             var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
 
@@ -128,6 +107,10 @@ namespace LugenStore.Application.Services
             var gameExist = await _repository.GetByIdAsync(dto.Id)
                 ?? throw new NotFoundException($"Game with id {dto.Id} not found.");
 
+            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
+                throw new NotFoundException($"Publisher with id {dto.PublisherId} not found.");
+
+            var genres = new List<Genre>();
             foreach (var genreId in dto.GenreId)
             {
                 var genre = await _genreRepository.GetByIdAsync(genreId);
@@ -137,21 +120,9 @@ namespace LugenStore.Application.Services
                 genres.Add(genre);
             }
 
-            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
-                throw new NotFoundException($"Publisher with id {dto.PublisherId} not found.");
+            gameExist.Update(dto.Name, dto.Price, dto.Description, dto.PublisherId, genres);
 
-            var game = new Game
-            {
-                Id = dto.Id,
-                Name = dto.Name,
-                Price = dto.Price,
-                PublisherId = dto.PublisherId,
-                Genres = genres,
-                Description = dto.Description,
-                CreatedAt = gameExist.CreatedAt
-            };
-
-            await _repository.UpdateAsync(game);
+            await _repository.UpdateAsync(gameExist);
 
             return true;
         }

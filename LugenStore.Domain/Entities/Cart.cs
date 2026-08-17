@@ -5,6 +5,6 @@ public class Cart
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public User? User { get; set; }
-    public List<CartItem> CartItems { get; set; } = new List<CartItem>();
+    public List<CartItem> CartItens { get; set; } = new List<CartItem>();
 
 }

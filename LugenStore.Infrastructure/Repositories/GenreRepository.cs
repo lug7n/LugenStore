@@ -25,7 +25,7 @@ namespace LugenStore.Infrastructure.Repositories
 
         public async Task UpdateAsync(Genre genre)
         {
-            var existingGenre = _context.Genres.FindAsync(genre.Id);
+            await _context.Genres.FindAsync(genre.Id);
             await _context.SaveChangesAsync();
         }
 

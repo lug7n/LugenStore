@@ -10,13 +10,9 @@ namespace LugenStore.Application.Services;
 
 public partial class GenreService(IGenreRepository _repository) : IGenreService
 {
-    private static void ValidateGenre(GenreBaseDto dto)
+    private static void SanitizeInput(GenreBaseDto dto)
     {
         dto.Name = dto.Name.Trim();
-        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
-
-        if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
-            throw new ValidationException("Genre name can only contain letters, numbers, spaces, and basic punctuation.");
     }
 
     public async Task<IEnumerable<GenreResponseDto>> GetAllAsync()
@@ -49,45 +45,40 @@ public partial class GenreService(IGenreRepository _repository) : IGenreService
 
     public async Task<GenreResponseDto> CreateAsync(CreateGenreDto dto)
     {
-        ValidateGenre(dto);
+        SanitizeInput(dto);
 
         if (await _repository.ExistsByNameAsync(dto.Name))
             throw new InvalidOperationException($"Genre with name {dto.Name} already exists");
-        
-        var genre = new Genre
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name
-        };
+
+        var genre = new Genre(dto.Name);
 
         await _repository.CreateAsync(genre);
 
+        var createdGenre = await _repository.GetByIdAsync(genre.Id)
+              ?? throw new NotFoundException($"Genre with id {genre.Id} not found after creation.");
+
         return new GenreResponseDto
         {
-            Id = genre.Id,
-            Name = genre.Name
+            Id = createdGenre.Id,
+            Name = createdGenre.Name
         };
     }
     public async Task<bool> UpdateAsync(UpdateGenreDto dto)
     {
-        ValidateGenre(dto);
+        SanitizeInput(dto);
 
         var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
-        var genreExists = await _repository.ExistsByIdAsync(dto.Id);
+        var genreExists = await _repository.GetByIdAsync(dto.Id);
 
         if (duplicate)
             throw new ValidationException($"Genre with name {dto.Name} already exists.");
 
-        if(!genreExists)
+        if(genreExists is null)
             throw new NotFoundException($"Genre with id {dto.Id} not found.");
 
-        var genre = new Genre
-        {
-            Id = dto.Id,
-            Name = dto.Name
-        };
+        genreExists.Update(dto.Name);
 
-        await _repository.UpdateAsync(genre);
+        await _repository.UpdateAsync(genreExists);
 
         return true;
     }
