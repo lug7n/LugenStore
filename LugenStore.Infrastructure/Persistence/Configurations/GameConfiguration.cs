@@ -27,15 +27,32 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.CreatedAt)
             .IsRequired();
 
-        builder.HasOne(g => g.Publisher)
+        builder.HasMany(g => g.Publishers)
             .WithMany(p => p.Games)
-            .HasForeignKey(g => g.PublisherId)
-            .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete to avoid deleting publisher when a game is deleted
+            .UsingEntity<Dictionary<string, object>>(
+                "GamePublishers",
+                j => j.HasOne<Publisher>()
+                      .WithMany()
+                      .HasForeignKey("PublisherId")
+                      .OnDelete(DeleteBehavior.Cascade),
+                j => j.HasOne<Game>()
+                      .WithMany()
+                      .HasForeignKey("GameId")
+                      .OnDelete(DeleteBehavior.Cascade));
 
         builder.HasMany(g => g.Genres)
             .WithMany(g => g.Games)
-            .UsingEntity(j => j.ToTable("GameGenres")); // Configure many-to-many relationship with a join table
-
-        builder.HasIndex(u => u.Name).IsUnique();
+            .UsingEntity<Dictionary<string, object>>(
+                "GameGenres",
+                j => j.HasOne<Genre>()
+                      .WithMany()
+                      .HasForeignKey("GenreId")
+                      .OnDelete(DeleteBehavior.Cascade),
+                j => j.HasOne<Game>()
+                      .WithMany()
+                      .HasForeignKey("GameId")
+                      .OnDelete(DeleteBehavior.Cascade));
+            
+        builder.HasIndex(g => g.Name);
     }
 }

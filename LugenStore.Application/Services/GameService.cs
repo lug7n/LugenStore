@@ -3,11 +3,12 @@ using LugenStore.Application.Interfaces;
 using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
+using LugenStore.Infrastructure.Persistence;
 using System.Text.RegularExpressions;
 
 namespace LugenStore.Application.Services
 {
-    public partial class GameService(IGameRepository _repository, IGenreRepository _genreRepository, IPublisherRepository _publisherRepository) : IGameService
+    public partial class GameService(IGameRepository _repository, IGenreRepository _genreRepository, IPublisherRepository _publisherRepository, IUnitOfWork _unitOfWork) : IGameService
     {
         private static void SanitizeInput(GameBaseDto dto)
         { 
@@ -24,7 +25,7 @@ namespace LugenStore.Application.Services
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
-                Publisher = game.Publisher.Name,
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
                 Genres = game.Genres.Select(g => g.Name).ToList(),
                 Description = game.Description,
                 CreatedAt = game.CreatedAt
@@ -46,7 +47,7 @@ namespace LugenStore.Application.Services
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
-                Publisher = game.Publisher.Name,
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
                 Genres = game.Genres.Select(g => g.Name).ToList(),
                 Description = game.Description,
                 CreatedAt = game.CreatedAt
@@ -57,10 +58,12 @@ namespace LugenStore.Application.Services
         {
             SanitizeInput(dto);
 
+            var genres = new List<Genre>();
+            var publishers = new List<Publisher>();
+
             if (dto.GenreId == null || dto.GenreId.Count == 0)
                 throw new ValidationException("At least one genre must be provided.");
 
-            var genres = new List<Genre>();
             foreach (var genreId in dto.GenreId)
             {
                 var genre = await _genreRepository.GetByIdAsync(genreId);
@@ -69,35 +72,42 @@ namespace LugenStore.Application.Services
                 genres.Add(genre);
             }
 
+            foreach (var publisherId in dto.PublisherId)
+            {
+                var publisher = await _publisherRepository.GetByIdAsync(publisherId);
+                if (publisher == null)
+                    throw new NotFoundException($"Publisher with id {publisherId} not found.");
+                publishers.Add(publisher);
+            }
+
             if (await _repository.ExistsByNameAsync(dto.Name))
                 throw new InvalidOperationException($"Game with name {dto.Name} already exists.");
 
-            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
-                throw new NotFoundException($"publisher with id {dto.PublisherId} not found.");
-
-            var game = new Game(dto.Name, dto.Price, dto.Description, dto.PublisherId, genres);
+            var game = new Game(dto.Name, dto.Price, dto.Description, publishers, genres);
            
             await _repository.CreateAsync(game);
-
-            var createdGame = await _repository.GetByIdAsync(game.Id)
-                ?? throw new NotFoundException($"Game with id {game.Id} not found after creation.");
-
+            await _unitOfWork.SaveChangesAsync();
+            
             return new GameResponseDto
             {
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
                 Description = game.Description,
-                Publisher = createdGame.Publisher.Name,
-                Genres = createdGame.Genres.Select(g => g.Name).ToList(),
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
+                Genres = game.Genres.Select(g => g.Name).ToList(),
                 CreatedAt = game.CreatedAt,
 
             };
+
         }
 
         public async Task<bool> UpdateAsync(UpdateGameDto dto)
         {
             SanitizeInput(dto);
+
+            var genres = new List<Genre>();
+            var publishers = new List<Publisher>();
 
             var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
 
@@ -107,10 +117,6 @@ namespace LugenStore.Application.Services
             var gameExist = await _repository.GetByIdAsync(dto.Id)
                 ?? throw new NotFoundException($"Game with id {dto.Id} not found.");
 
-            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
-                throw new NotFoundException($"Publisher with id {dto.PublisherId} not found.");
-
-            var genres = new List<Genre>();
             foreach (var genreId in dto.GenreId)
             {
                 var genre = await _genreRepository.GetByIdAsync(genreId);
@@ -120,9 +126,18 @@ namespace LugenStore.Application.Services
                 genres.Add(genre);
             }
 
-            gameExist.Update(dto.Name, dto.Price, dto.Description, dto.PublisherId, genres);
+            foreach (var publisherId in dto.PublisherId)
+            {
+                var publisher = await _publisherRepository.GetByIdAsync(publisherId);
+                if (publisher == null)
+                    throw new NotFoundException($"Publisher with id {publisherId} not found.");
+                publishers.Add(publisher);
+            }
+
+            gameExist.Update(dto.Name, dto.Price, dto.Description, publishers, genres);
 
             await _repository.UpdateAsync(gameExist);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -136,6 +151,8 @@ namespace LugenStore.Application.Services
 
             if (!deleted)
                 throw new NotFoundException($"Game with id {id} not found.");
+            
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

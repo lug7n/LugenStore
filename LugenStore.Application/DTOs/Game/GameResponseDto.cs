@@ -8,6 +8,6 @@ public class GameResponseDto
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public string Publisher { get; set; } = string.Empty;
+    public List<string> Publishers { get; set; } = new List<string>();
     public List<string> Genres { get; set; } = new List<string>();
 }

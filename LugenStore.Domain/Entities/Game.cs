@@ -10,13 +10,12 @@ public class Game
     public decimal Price { get; private set; }
     public string Description { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
-    public Guid PublisherId { get; private set; }
-    public Publisher Publisher { get; private set; } = null!;
+    public List<Publisher> Publishers { get; private set; } = new List<Publisher>();
     public List<Genre> Genres { get; private set; } = new List<Genre>();
 
     protected Game() { }
 
-    public Game(string name, decimal price, string description, Guid publisherId, List<Genre> genres)
+    public Game(string name, decimal price, string description, List<Publisher> publishers, List<Genre> genres)
     {
         Validate(name, price);
 
@@ -24,19 +23,19 @@ public class Game
         Name = name;
         Price = price;
         Description = description;
-        PublisherId = publisherId;
+        Publishers = publishers;
         Genres = genres;
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void Update(string name, decimal price, string description, Guid publisherId, List<Genre> genres)
+    public void Update(string name, decimal price, string description, List<Publisher> publishers, List<Genre> genres)
     {
         Validate(name, price);
 
         Name = name;
         Price = price;
         Description = description;
-        PublisherId = publisherId;
+        Publishers = publishers;
         Genres = genres;
     }
 

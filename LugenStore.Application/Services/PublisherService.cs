@@ -1,22 +1,18 @@
 using LugenStore.Application.DTOs.Publisher;
 using LugenStore.Application.Interfaces;
-using LugenStore.Domain.Common.Validation;
 using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
+using LugenStore.Infrastructure.Persistence;
 using System.Text.RegularExpressions;
 
 namespace LugenStore.Application.Services;
 
-public partial class PublisherService(IPublisherRepository _repository) : IPublisherService
+public partial class PublisherService(IPublisherRepository _repository, IUnitOfWork _unitOfWork) : IPublisherService
 {
-    private static void ValidatePublisher (PublisherBaseDto dto)
+    private static void SanitizeInput (PublisherBaseDto dto)
     {
-        dto.Name = dto.Name.Trim();
-        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
-
-        if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
-            throw new ValidationException("Publisher name can only contain letters, numbers, spaces, and basic punctuation.");
+        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name.Trim(), " ");
     }
     public async Task<IEnumerable<PublisherResponseDto>> GetAllAsync()
     {
@@ -48,18 +44,15 @@ public partial class PublisherService(IPublisherRepository _repository) : IPubli
 
     public async Task<PublisherResponseDto> CreateAsync(CreatePublisherDto dto)
     {
-        ValidatePublisher(dto);
+        SanitizeInput(dto);
 
         if (await _repository.ExistsByNameAsync(dto.Name))
-            throw new InvalidOperationException($"Publisher with name {dto.Name} already exists");
-        
-        var publisher = new Publisher
-        {
-            Id = Guid.NewGuid(), 
-            Name = dto.Name
-        };
+            throw new ValidationException($"Publisher with name {dto.Name} already exists");
+
+        var publisher = new Publisher(dto.Name);
 
         await _repository.CreateAsync(publisher);
+        await _unitOfWork.SaveChangesAsync();
 
         return new PublisherResponseDto
         {
@@ -70,24 +63,18 @@ public partial class PublisherService(IPublisherRepository _repository) : IPubli
 
     public async Task<bool> UpdateAsync(UpdatePublisherDto dto)
     {
-        ValidatePublisher(dto);
+        SanitizeInput(dto);
+
+        var existing = await _repository.GetByIdAsync(dto.Id)
+            ?? throw new NotFoundException($"Publisher with id {dto.Id} not found");
 
         if (await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id))
             throw new InvalidOperationException($"Publisher with name {dto.Name} already exists");
 
-        //var existing = await _repository.GetByIdAsync(dto.Id)
-        //    ?? throw new NotFoundException($"Publisher with id {dto.Id} not found");
+        existing.Update(dto.Name);
 
-        if (await _repository.GetByIdAsync(dto.Id) is null)
-            throw new NotFoundException($"Publisher with id {dto.Id} not found");
-
-        var publisher = new Publisher
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name,
-        };
-
-        await _repository.UpdateAsync(publisher);
+        await _repository.UpdateAsync(existing);
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }
@@ -101,6 +88,8 @@ public partial class PublisherService(IPublisherRepository _repository) : IPubli
 
         if(!deleted)
             throw new NotFoundException($"Publisher with id {id} not found");
+
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }

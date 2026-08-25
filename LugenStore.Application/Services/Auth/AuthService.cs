@@ -7,35 +7,27 @@ using LugenStore.Infrastructure.Security.Hash;
 using LugenStore.Infrastructure.Security.Token;
 using LugenStore.Application.Validators;
 using System.Text.RegularExpressions;
+using LugenStore.Infrastructure.Persistence;
 
 namespace LugenStore.Application.Services.Auth;
 
-public class AuthService(IUserRepository _repository, IPasswordHasher _passwordHasher, ITokenService _tokenService) : IAuthService
+public partial class AuthService(IUserRepository _repository, IUnitOfWork _unitOfWork, IPasswordHasher _passwordHasher, ITokenService _tokenService) : IAuthService
 {
-    private static void NormalizeRegister(RegisterDto dto)
+    private static void SanitizeInput(RegisterDto dto)
     {
-        dto.Name = dto.Name.Trim();
+        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name.Trim(), " ");
         dto.Email = dto.Email.Trim().ToLower();
-        dto.Cpf = dto.Cpf.Trim();
-
-        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
-        dto.Cpf = GeneratedRegexes.WhitespaceRegex().Replace(dto.Cpf, " ");
-
-        if (dto.Email.Contains(' '))
-            throw new ValidationException("Email cannot contain spaces");
+        dto.Cpf = GeneratedRegexes.WhitespaceRegex().Replace(dto.Cpf.Trim(), " ");
     }
 
-    private static void NormalizeLogin(LoginDto dto)
+    private static void SanitizeInputLogin(LoginDto dto)
     {
         dto.Email = dto.Email.Trim().ToLower();
-
-        if (dto.Email.Contains(' '))
-            throw new ValidationException("Email cannot contain spaces");
     }
 
     public async Task<UserResponseDto> RegisterAsync(RegisterDto dto)
     {
-        NormalizeRegister(dto);
+        SanitizeInput(dto);
 
         if (dto.Password != dto.ConfirmPassword)
             throw new ValidationException("Passwords do not match");
@@ -54,15 +46,10 @@ public class AuthService(IUserRepository _repository, IPasswordHasher _passwordH
 
         var hash = _passwordHasher.HashPassword(dto.Password);
 
-        var user = new User
-        {
-            Name = dto.Name,
-            Email = dto.Email,
-            Cpf = dto.Cpf,
-            PasswordHash = hash
-        };
+        var user = new User(dto.Name, dto.Cpf, dto.Email, hash);
 
         await _repository.CreateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
 
         return new UserResponseDto
         {
@@ -75,17 +62,17 @@ public class AuthService(IUserRepository _repository, IPasswordHasher _passwordH
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
-        NormalizeLogin(dto);
+        SanitizeInputLogin(dto);
 
         var user = await _repository.GetByEmailAsync(dto.Email);
 
         if (user is null)
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw new UnauthorizedAccessException("Invalid credentials (Email)");
 
         var isValid = _passwordHasher.VerifyPassword(dto.Password, user.PasswordHash);
 
         if (!isValid)
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw new UnauthorizedAccessException("Invalid credentials (Password)");
 
         var token = _tokenService.GenerateToken(user);
 
@@ -98,13 +85,17 @@ public class AuthService(IUserRepository _repository, IPasswordHasher _passwordH
             Email = user.Email
         };
     }
-}
 
-internal static partial class GeneratedRegexes
-{
-    [GeneratedRegex(@"\s+")]
-    internal static partial Regex WhitespaceRegex();
 
-    [GeneratedRegex(@"\s")]
-    internal static partial Regex WhitespaceCharRegex();
+    internal static partial class GeneratedRegexes
+    {
+        [GeneratedRegex(@"\s+")]
+        internal static partial Regex WhitespaceRegex();
+
+        [GeneratedRegex(@"\s")]
+        internal static partial Regex WhitespaceCharRegex();
+
+        [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase)]
+        internal static partial Regex EmailRegex();
+    }
 }

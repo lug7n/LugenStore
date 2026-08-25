@@ -4,7 +4,7 @@ namespace LugenStore.Domain.Interfaces;
 
 public interface ICartRepository
 {
-    Task<Cart?> GetActiveCartByUserIdAsync(Guid userId);
+    Task<Cart?> GetCartByUserIdAsync(Guid userId, bool IsActive);
     Task CreateAsync(Cart cart);
     Task UpdateAsync(Cart cart);
 }

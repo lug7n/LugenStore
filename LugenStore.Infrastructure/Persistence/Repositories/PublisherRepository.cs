@@ -3,7 +3,7 @@ using LugenStore.Domain.Interfaces;
 using LugenStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace LugenStore.Infrastructure.Repositories;
+namespace LugenStore.Infrastructure.Persistence.Repositories;
 
 public class PublisherRepository(AppDbContext _context) : IPublisherRepository
 {
@@ -18,14 +18,12 @@ public class PublisherRepository(AppDbContext _context) : IPublisherRepository
     }
     public async Task CreateAsync(Publisher publisher)
     {
-        await _context.AddAsync(publisher);
-        await _context.SaveChangesAsync();
+        await _context.Publisher.AddAsync(publisher);
     }
 
     public async Task UpdateAsync(Publisher publisher)
     {
-        var existingPublisher = await _context.Publisher.FindAsync(publisher.Id);
-        await _context.SaveChangesAsync();
+        _context.Publisher.Update(publisher);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

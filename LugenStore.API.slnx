@@ -2,7 +2,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".env" />
     <File Path="docker-compose.yml" />
-    <File Path="notations.md" />
+    <File Path="notation.md" />
   </Folder>
   <Project Path="LugenStore.API/LugenStore.WebAPI.csproj" />
   <Project Path="LugenStore.Application/LugenStore.Application.csproj" />

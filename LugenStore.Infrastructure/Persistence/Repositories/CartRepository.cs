@@ -3,11 +3,11 @@ using LugenStore.Domain.Interfaces;
 using LugenStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace LugenStore.Infrastructure.Repositories;
+namespace LugenStore.Infrastructure.Persistence.Repositories;
 
 public class CartRepository(AppDbContext _context) : ICartRepository
 {
-    public async Task<Cart?> GetActiveCartByUserIdAsync(Guid userId)
+    public async Task<Cart?> GetCartByUserIdAsync(Guid userId, bool isActive)
     {
         return await _context.Cart
             .Include(c => c.CartItens)
@@ -17,13 +17,11 @@ public class CartRepository(AppDbContext _context) : ICartRepository
     public async Task CreateAsync(Cart cart)
     {
         await _context.AddAsync(cart);
-        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Cart cart)
     {
         _context.Cart.Update(cart);
-        await _context.SaveChangesAsync();
     }
 
 }
