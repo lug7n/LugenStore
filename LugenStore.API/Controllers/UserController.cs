@@ -54,6 +54,7 @@ public class UserController(IUserService _service) : ControllerBase
         }
     }
 
+    [AllowAnonymous]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {

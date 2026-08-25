@@ -1,22 +1,18 @@
 using LugenStore.Application.DTOs.Genre;
 using LugenStore.Application.Interfaces;
-using LugenStore.Domain.Common.Validation;
 using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
+using LugenStore.Infrastructure.Persistence;
 using System.Text.RegularExpressions;
 
 namespace LugenStore.Application.Services;
 
-public partial class GenreService(IGenreRepository _repository) : IGenreService
+public partial class GenreService(IGenreRepository _repository, IUnitOfWork _unitOfWork) : IGenreService
 {
-    private static void ValidateGenre(GenreBaseDto dto)
+    private static void SanitizeInput(GenreBaseDto dto)
     {
-        dto.Name = dto.Name.Trim();
-        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
-
-        if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
-            throw new ValidationException("Genre name can only contain letters, numbers, spaces, and basic punctuation.");
+        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name.Trim(), " ");
     }
 
     public async Task<IEnumerable<GenreResponseDto>> GetAllAsync()
@@ -32,10 +28,10 @@ public partial class GenreService(IGenreRepository _repository) : IGenreService
 
     public async Task<GenreResponseDto?> GetByIdAsync(Guid id)
     {
-        var genre = await _repository.GetByIdAsync(id);
-
         if (id == Guid.Empty)
             throw new ValidationException("Id cannot be empty.");
+
+        var genre = await _repository.GetByIdAsync(id);
 
         if (genre is null)
             throw new NotFoundException($"Genre with id {id} not found.");
@@ -49,18 +45,15 @@ public partial class GenreService(IGenreRepository _repository) : IGenreService
 
     public async Task<GenreResponseDto> CreateAsync(CreateGenreDto dto)
     {
-        ValidateGenre(dto);
+        SanitizeInput(dto);
 
         if (await _repository.ExistsByNameAsync(dto.Name))
             throw new InvalidOperationException($"Genre with name {dto.Name} already exists");
-        
-        var genre = new Genre
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name
-        };
+
+        var genre = new Genre(dto.Name);
 
         await _repository.CreateAsync(genre);
+        await _unitOfWork.SaveChangesAsync();
 
         return new GenreResponseDto
         {
@@ -70,24 +63,18 @@ public partial class GenreService(IGenreRepository _repository) : IGenreService
     }
     public async Task<bool> UpdateAsync(UpdateGenreDto dto)
     {
-        ValidateGenre(dto);
+        SanitizeInput(dto);
 
-        var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
-        var genreExists = await _repository.ExistsByIdAsync(dto.Id);
+        var genreExists = await _repository.GetByIdAsync(dto.Id)
+            ?? throw new NotFoundException($"Genre with id {dto.Id} not found.");
 
-        if (duplicate)
-            throw new ValidationException($"Genre with name {dto.Name} already exists.");
+        if (await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id))
+            throw new InvalidOperationException($"Genre with name {dto.Name} already exists");
 
-        if(!genreExists)
-            throw new NotFoundException($"Genre with id {dto.Id} not found.");
+        genreExists.Update(dto.Name);
 
-        var genre = new Genre
-        {
-            Id = dto.Id,
-            Name = dto.Name
-        };
-
-        await _repository.UpdateAsync(genre);
+        await _repository.UpdateAsync(genreExists);
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }
@@ -102,9 +89,11 @@ public partial class GenreService(IGenreRepository _repository) : IGenreService
         if(!deleted)
             throw new NotFoundException($"Genre with id {id} not found."); 
 
+        await _unitOfWork.SaveChangesAsync();
+
         return true;
     }
-
+     
     internal static partial class GeneratedRegexes
     {
         [GeneratedRegex(@"\s+")]

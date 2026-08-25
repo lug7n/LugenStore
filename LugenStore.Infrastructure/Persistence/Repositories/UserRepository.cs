@@ -3,7 +3,7 @@ using LugenStore.Domain.Interfaces;
 using LugenStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace LugenStore.Infrastructure.Repositories;
+namespace LugenStore.Infrastructure.Persistence.Repositories;
 
 public class UserRepository(AppDbContext _context) : IUserRepository
 {
@@ -17,21 +17,12 @@ public class UserRepository(AppDbContext _context) : IUserRepository
     }
     public async Task CreateAsync(User user)
     {
-        await _context.AddAsync(user);
-        await _context.SaveChangesAsync();
+        await _context.User.AddAsync(user);
     }
 
     public async Task UpdateAsync(User user)
     {
-        var existingUser = await _context.User.FindAsync(user.Id);
-
-        if (existingUser is null)
-            return;
-
-        existingUser.Name = user.Name;
-        existingUser.Email = user.Email;
-
-        await _context.SaveChangesAsync();
+        _context.User.Update(user);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

@@ -1,21 +1,18 @@
 using LugenStore.Application.DTOs.User;
 using LugenStore.Application.Interfaces;
-using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
+using LugenStore.Infrastructure.Persistence;
 using System.Text.RegularExpressions;
 
 namespace LugenStore.Application.Services;
 
-public partial class UserService(IUserRepository _repository) : IUserService
+public partial class UserService(IUserRepository _repository, IUnitOfWork _unitOfWork) : IUserService
 {
-    private static void Normalize(UserBaseDto dto)
+    private static void SanitizeInput(UserBaseDto dto)
     {
-        dto.Name = dto.Name.Trim();
-        dto.Email = dto.Email.Trim();
-
-        dto.Name = WhitespaceRegex().Replace(dto.Name, " ");
-        dto.Email = WhitespaceRegex().Replace(dto.Email, " ");
+        dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name.Trim(), " ");
+        dto.Email = GeneratedRegexes.WhitespaceRegex().Replace(dto.Email.Trim(), " ");
     }
 
     public async Task<UserResponseDto?> GetByIdAsync(Guid id)
@@ -23,10 +20,8 @@ public partial class UserService(IUserRepository _repository) : IUserService
         if (id == Guid.Empty)
             throw new ValidationException("Id cannot be empty");
 
-        var user = await _repository.GetByIdAsync(id);
-
-        if (user is null)
-            throw new ArgumentNullException(nameof(id));
+        var user = await _repository.GetByIdAsync(id)
+            ?? throw new NotFoundException($"User with id {id} not found");
 
         return new UserResponseDto
         {
@@ -38,25 +33,20 @@ public partial class UserService(IUserRepository _repository) : IUserService
 
     public async Task<bool> UpdateAsync(UpdateUserDto dto)
     {
-        Normalize(dto);
+        SanitizeInput(dto);
+
+        var existing = await _repository.GetByIdAsync(dto.Id)
+            ?? throw new NotFoundException($"User with id {dto.Id} not found");
 
         var duplicate = await _repository.ExistsByEmailAsync(dto.Email);
 
         if (duplicate)
             throw new InvalidOperationException($"User with email {dto.Email} already exists");
 
-        var userExists = await _repository.GetByIdAsync(dto.Id)
-            ?? throw new NotFoundException($"User with id {dto.Id} not found");
+        existing.Update(dto.Name, dto.Email);
 
-        var user = new User
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Email = dto.Email,
-            CreatedAt = userExists.CreatedAt
-        };
-
-        await _repository.UpdateAsync(user);
+        await _repository.UpdateAsync(existing);
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }
@@ -68,12 +58,17 @@ public partial class UserService(IUserRepository _repository) : IUserService
 
         var deleted = await _repository.DeleteAsync(id);
 
-        if(!await _repository.DeleteAsync(id))
+        if(!deleted)
             throw new NotFoundException($"User with id {id} not found.");
-            
+        
+        await _unitOfWork.SaveChangesAsync();
+
         return true;
     }
 
-    [GeneratedRegex(@"\s+")]
-    internal static partial Regex WhitespaceRegex();
+    internal static partial class GeneratedRegexes
+    {
+        [GeneratedRegex(@"\s+")]
+        internal static partial Regex WhitespaceRegex();
+    }
 }

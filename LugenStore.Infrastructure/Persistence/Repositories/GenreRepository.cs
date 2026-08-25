@@ -3,7 +3,7 @@ using LugenStore.Domain.Interfaces;
 using LugenStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace LugenStore.Infrastructure.Repositories
+namespace LugenStore.Infrastructure.Persistence.Repositories
 {
     public class GenreRepository(AppDbContext _context) : IGenreRepository
     {
@@ -19,14 +19,12 @@ namespace LugenStore.Infrastructure.Repositories
 
         public async Task CreateAsync(Genre genre)
         {
-            await _context.AddAsync(genre);
-            await _context.SaveChangesAsync();
+            await _context.Genres.AddAsync(genre);
         }
 
         public async Task UpdateAsync(Genre genre)
         {
-            var existingGenre = _context.Genres.FindAsync(genre.Id);
-            await _context.SaveChangesAsync();
+            _context.Genres.Update(genre);
         }
 
         public async Task<bool> DeleteAsync(Guid id)

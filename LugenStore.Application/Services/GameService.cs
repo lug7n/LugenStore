@@ -1,28 +1,19 @@
 using LugenStore.Application.DTOs.Game;
 using LugenStore.Application.Interfaces;
-using LugenStore.Domain.Common.Validation;
 using LugenStore.Domain.Entities;
 using LugenStore.Domain.Exceptions;
 using LugenStore.Domain.Interfaces;
+using LugenStore.Infrastructure.Persistence;
 using System.Text.RegularExpressions;
 
 namespace LugenStore.Application.Services
 {
-    public partial class GameService(IGameRepository _repository, IGenreRepository _genreRepository, IPublisherRepository _publisherRepository) : IGameService
+    public partial class GameService(IGameRepository _repository, IGenreRepository _genreRepository, IPublisherRepository _publisherRepository, IUnitOfWork _unitOfWork) : IGameService
     {
-        private static void ValidateGame(GameBaseDto dto)
+        private static void SanitizeInput(GameBaseDto dto)
         { 
-            dto.Name = dto.Name.Trim();
-            dto.Description = dto.Description.Trim();
-
             dto.Name = GeneratedRegexes.WhitespaceRegex().Replace(dto.Name, " ");
             dto.Description = GeneratedRegexes.WhitespaceRegex().Replace(dto.Description, " ");
-
-            if (dto.Price < 0)
-                throw new ValidationException("Price cannot be negative.");
-
-            if (!ValidationPatterns.NameRegex.IsMatch(dto.Name))
-                throw new ValidationException("Game name can only contain letters, numbers, spaces, and basic punctuation.");
         }
 
         public async Task<IEnumerable<GameResponseDto>> GetAllAsync()
@@ -34,7 +25,7 @@ namespace LugenStore.Application.Services
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
-                Publisher = game.Publisher.Name,
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
                 Genres = game.Genres.Select(g => g.Name).ToList(),
                 Description = game.Description,
                 CreatedAt = game.CreatedAt
@@ -56,7 +47,7 @@ namespace LugenStore.Application.Services
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
-                Publisher = game.Publisher.Name,
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
                 Genres = game.Genres.Select(g => g.Name).ToList(),
                 Description = game.Description,
                 CreatedAt = game.CreatedAt
@@ -65,9 +56,10 @@ namespace LugenStore.Application.Services
 
         public async Task<GameResponseDto> CreateAsync(CreateGameDto dto)
         {
-            ValidateGame(dto);
+            SanitizeInput(dto);
 
             var genres = new List<Genre>();
+            var publishers = new List<Publisher>();
 
             if (dto.GenreId == null || dto.GenreId.Count == 0)
                 throw new ValidationException("At least one genre must be provided.");
@@ -80,45 +72,42 @@ namespace LugenStore.Application.Services
                 genres.Add(genre);
             }
 
+            foreach (var publisherId in dto.PublisherId)
+            {
+                var publisher = await _publisherRepository.GetByIdAsync(publisherId);
+                if (publisher == null)
+                    throw new NotFoundException($"Publisher with id {publisherId} not found.");
+                publishers.Add(publisher);
+            }
+
             if (await _repository.ExistsByNameAsync(dto.Name))
                 throw new InvalidOperationException($"Game with name {dto.Name} already exists.");
 
-            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
-                throw new NotFoundException($"publisher with id {dto.PublisherId} not found.");
-
-            var game = new Game
-            {
-                Name = dto.Name,
-                Price = dto.Price,
-                PublisherId = dto.PublisherId,
-                Genres = genres,
-                Description = dto.Description,
-                CreatedAt = DateTime.UtcNow
-            };
-
+            var game = new Game(dto.Name, dto.Price, dto.Description, publishers, genres);
+           
             await _repository.CreateAsync(game);
-
-            var createdGame = await _repository.GetByIdAsync(game.Id)
-                ?? throw new NotFoundException($"Game with id {game.Id} not found after creation."); // This should never happen, but we want to be sure.
-
+            await _unitOfWork.SaveChangesAsync();
+            
             return new GameResponseDto
             {
                 Id = game.Id,
                 Name = game.Name,
                 Price = game.Price,
                 Description = game.Description,
-                Publisher = createdGame.Publisher.Name,
-                Genres = createdGame.Genres.Select(g => g.Name).ToList(),
+                Publishers = game.Publishers.Select(p => p.Name).ToList(),
+                Genres = game.Genres.Select(g => g.Name).ToList(),
                 CreatedAt = game.CreatedAt,
 
             };
+
         }
 
         public async Task<bool> UpdateAsync(UpdateGameDto dto)
         {
-            var genres = new List<Genre>();
+            SanitizeInput(dto);
 
-            ValidateGame(dto);
+            var genres = new List<Genre>();
+            var publishers = new List<Publisher>();
 
             var duplicate = await _repository.ExistsByNameExceptIdAsync(dto.Name, dto.Id);
 
@@ -137,21 +126,18 @@ namespace LugenStore.Application.Services
                 genres.Add(genre);
             }
 
-            if (!await _publisherRepository.ExistsByIdAsync(dto.PublisherId))
-                throw new NotFoundException($"Publisher with id {dto.PublisherId} not found.");
-
-            var game = new Game
+            foreach (var publisherId in dto.PublisherId)
             {
-                Id = dto.Id,
-                Name = dto.Name,
-                Price = dto.Price,
-                PublisherId = dto.PublisherId,
-                Genres = genres,
-                Description = dto.Description,
-                CreatedAt = gameExist.CreatedAt
-            };
+                var publisher = await _publisherRepository.GetByIdAsync(publisherId);
+                if (publisher == null)
+                    throw new NotFoundException($"Publisher with id {publisherId} not found.");
+                publishers.Add(publisher);
+            }
 
-            await _repository.UpdateAsync(game);
+            gameExist.Update(dto.Name, dto.Price, dto.Description, publishers, genres);
+
+            await _repository.UpdateAsync(gameExist);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -165,6 +151,8 @@ namespace LugenStore.Application.Services
 
             if (!deleted)
                 throw new NotFoundException($"Game with id {id} not found.");
+            
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

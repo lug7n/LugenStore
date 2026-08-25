@@ -15,9 +15,9 @@ public class GameBaseDto
     [StringLength(2000, MinimumLength = 30)]
     public string Description { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Publisher id is required")]
-    public Guid PublisherId { get; set; }
+    [Required(ErrorMessage = "Publisher Id is required")]
+    public List<Guid> PublisherId { get; set; } = new List<Guid>();
 
-    [Required(ErrorMessage = "Genre id is required")]
+    [Required(ErrorMessage = "Genre Id is required")]
     public List<Guid> GenreId { get; set; } = new List<Guid>();
 }

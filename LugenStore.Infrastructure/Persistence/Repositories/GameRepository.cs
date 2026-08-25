@@ -3,14 +3,14 @@ using LugenStore.Domain.Interfaces;
 using LugenStore.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace LugenStore.Infrastructure.Repositories;
+namespace LugenStore.Infrastructure.Persistence.Repositories;
 
 public class GameRepository(AppDbContext _context) : IGameRepository
 {
     public async Task<IEnumerable<Game>> GetAllAsync()
     {
         return await _context.Games
-            .Include(g => g.Publisher)
+            .Include(g => g.Publishers)
             .Include(g => g.Genres)
             .ToListAsync();
     }
@@ -18,31 +18,19 @@ public class GameRepository(AppDbContext _context) : IGameRepository
     public async Task<Game?> GetByIdAsync(Guid id)
     {
         return await _context.Games
-            .Include(g => g.Publisher)
+            .Include(g => g.Publishers)
             .Include(g => g.Genres)
             .FirstOrDefaultAsync(g => g.Id == id);
     }
 
     public async Task CreateAsync(Game game)
     {
-        await _context.AddAsync(game);
-        await _context.SaveChangesAsync();
+        await _context.Games.AddAsync(game);
     }
 
     public async Task UpdateAsync(Game game)
     {
-        var existingGame = await _context.Games.FindAsync(game.Id);
-
-        if (existingGame is null)
-            return;
-
-        existingGame.Name = game.Name;
-        existingGame.Price = game.Price;
-        existingGame.Publisher = game.Publisher;    
-        existingGame.Genres = game.Genres;
-        existingGame.Description = game.Description;
-
-        await _context.SaveChangesAsync();
+        _context.Games.Update(game);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
