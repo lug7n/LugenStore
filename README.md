@@ -328,7 +328,8 @@ dotnet ef migrations remove
 - [ ] Cart expiration logic
 - [ ] Observability (structured logging, metrics, tracing)
 - [ ] AWS deployment (Lambda + API Gateway)
-- [ ] CI/CD pipeline
+- [X] CI pipeline
+- [ ] CD pipeline
 
 ---
 
