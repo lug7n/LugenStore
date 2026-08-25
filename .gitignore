@@ -9,7 +9,7 @@ Thumbs.db
 npm-debug.log*
 dist/
 build/
-notations.md
+notation.md
 .vs/
 appsettings.json
 appsettings.Development.json
