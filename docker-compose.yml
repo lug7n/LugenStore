@@ -3,7 +3,7 @@
     image: postgres:16
     environment:
       POSTGRES_USER: LugenStoreDb
-      POSTGRES_PASSWORD: momo123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: LugenStoreDb
     ports: 
       - "5432:5432"
