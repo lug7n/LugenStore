@@ -38,6 +38,9 @@ jobs:
        echo "$PRIVATE_KEY" > deploy_key.pem
        chmod 600 deploy_key.pem
 
+    - name: List images
+      run: docker images
+      
        docker save -o lugenstore-api.tar lugenstore-api:latest
 
        scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
