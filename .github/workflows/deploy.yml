@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-  
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,20 +29,23 @@ jobs:
     - name: Run Docker Compose
       run: docker compose up -d
 
+    - name: List images
+      run: docker images
+
     - name: EC2 Deploy
       env:
-        PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY}}
+        PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY }}
         USER: ubuntu
         HOST: 13.59.11.44
       run: |
-       echo "$PRIVATE_KEY" > deploy_key.pem
-       chmod 600 deploy_key.pem
+        echo "$PRIVATE_KEY" > deploy_key.pem
+        chmod 600 deploy_key.pem
 
-       docker save -o lugenstore-api.tar  lugenstore-api_api
+        docker save -o lugenstore-api.tar lugenstore-api_api
 
-       scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
-       scp -o StrictHostKeyChecking=no -i deploy_key.pem init.sql $USER@$HOST:/home/ubuntu/
-       scp -o StrictHostKeyChecking=no -i deploy_key.pem docker-compose.sql $USER@$HOST:/home/ubuntu/
-       scp -o StrictHostKeyChecking=no -i deploy_key.pem script-deploy.sh $USER@$HOST:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i deploy_key.pem init.sql $USER@$HOST:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i deploy_key.pem docker-compose.sql $USER@$HOST:/home/ubuntu/
+        scp -o StrictHostKeyChecking=no -i deploy_key.pem script-deploy.sh $USER@$HOST:/home/ubuntu/
 
-       ssh -i deploy_key.pem $USER@$HOST "chmod +x script-deploy.sh  && ./script-deploy.sh"
+        ssh -i deploy_key.pem $USER@$HOST "chmod +x script-deploy.sh && ./script-deploy.sh"
