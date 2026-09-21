@@ -27,7 +27,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Run Docker Compose
-      run: docker compose up -d
+      run: docker compose up -d --build
 
     - name: EC2 Deploy
       env:
@@ -38,7 +38,7 @@ jobs:
        echo "$PRIVATE_KEY" > deploy_key.pem
        chmod 600 deploy_key.pem
 
-       docker save -o lugenstore-api.tar  lugenstore-api_api
+       docker save -o lugenstore-api.tar lugenstore-api:latest
 
        scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
        scp -o StrictHostKeyChecking=no -i deploy_key.pem init.sql $USER@$HOST:/home/ubuntu/
