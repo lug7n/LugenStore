@@ -47,7 +47,6 @@ jobs:
         docker save -o lugenstore-api.tar lugenstore-api:latest
 
         scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
-        scp -o StrictHostKeyChecking=no -i deploy_key.pem init.sql $USER@$HOST:/home/ubuntu/
         scp -o StrictHostKeyChecking=no -i deploy_key.pem docker-compose.yml $USER@$HOST:/home/ubuntu/
         scp -o StrictHostKeyChecking=no -i deploy_key.pem script-deploy.sh $USER@$HOST:/home/ubuntu/
 
