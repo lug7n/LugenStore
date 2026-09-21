@@ -27,7 +27,7 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Show repo structure
-      run: find . -maxdepth 3 -type d
+      run: find . -maxdepth 3 -not -path "./.git*" -not -path "*/obj*" -not -path "*/bin*"
 
     - name: Run Docker Compose
       run: docker compose up -d --build
