@@ -1,0 +1,48 @@
+name: Deploy LugenStore
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+  
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Run Docker Compose
+      run: docker compose up -d
+
+    - name: EC2 Deploy
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_PRIVATE_KEY}}
+        USER: ubuntu
+        HOST: 13.59.11.44
+      run: |
+       echo "$PRIVATE_KEY" > deploy_key.pem
+       chmod 600 deploy_key.pem
+
+       docker save -o lugenstore-api.tar  lugenstore-api_api
+
+       scp -o StrictHostKeyChecking=no -i deploy_key.pem lugenstore-api.tar $USER@$HOST:/home/ubuntu/
+       scp -o StrictHostKeyChecking=no -i deploy_key.pem init.sql $USER@$HOST:/home/ubuntu/
+       scp -o StrictHostKeyChecking=no -i deploy_key.pem docker-compose.sql $USER@$HOST:/home/ubuntu/
+       scp -o StrictHostKeyChecking=no -i deploy_key.pem script-deploy.sh $USER@$HOST:/home/ubuntu/
+
+       ssh -i deploy_key.pem #USER@$HOST "chmod +x script-deploy.sh  && ./script-deploy.sh"
