@@ -1,11 +1,15 @@
 ﻿services:
   api:
-    build: .
-    image: lugenstore-api_api
-    ports:
-      - "8080:8080"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lugenstore-api:latest
     depends_on:
       - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=LugenStoreDb;Username=LugenStoreDb;Password=${DB_PASSWORD}"
 
   postgres:
     image: postgres:16
