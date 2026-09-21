@@ -26,6 +26,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
+    - name: Show repo structure
+      run: find . -maxdepth 3 -type d
+
     - name: Run Docker Compose
       run: docker compose up -d --build
 
