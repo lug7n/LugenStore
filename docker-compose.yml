@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: LugenStore.WebApi/Dockerfile
+      dockerfile: LugenStore.API/Dockerfile
     image: lugenstore-api:latest
     depends_on:
       - postgres
