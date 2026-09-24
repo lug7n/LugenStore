@@ -10,9 +10,9 @@ services:
       - "8080:8080"
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=LugenStoreDb;Username=LugenStoreDb;Password=${DB_PASSWORD}"
-      Jwt__Key: "${JWT_KEY}"
-      Jwt__Issuer: "${JWT_ISSUER}"
-      Jwt__Audience: "${JWT_AUDIENCE}"
+      JwtSettings__SecretKey: "${JWT_KEY}"
+      JwtSettings__Issuer: "${JWT_ISSUER}"
+      JwtSettings__Audience: "${JWT_AUDIENCE}"
 
   postgres:
     image: postgres:16
