@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "LugenStore.API\\LugenStore.WebAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "LugenStore.Application\\LugenStore.Application.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "LugenStore.Domain\\LugenStore.Domain.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "LugenStore.Infrastructure\\LugenStore.Infrastructure.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
