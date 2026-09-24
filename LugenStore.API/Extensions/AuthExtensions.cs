@@ -14,7 +14,7 @@ public static class AuthExtensions
         var jwt = configuration.GetSection("JwtSettings").Get<JwtSettings>()
             ?? throw new InvalidOperationException("JWT settings is missing");
 
-        var key = Encoding.UTF8.GetBytes(jwt.Key);
+        var key = Encoding.UTF8.GetBytes(jwt.SecretKey);
 
         services.AddAuthentication(options =>
         {
