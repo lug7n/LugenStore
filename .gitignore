@@ -13,3 +13,6 @@ notation.md
 .vs/
 appsettings.json
 appsettings.Development.json
+*.tar
+*.user
+*.slnLaunch.user
