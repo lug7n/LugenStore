@@ -1,6 +1,7 @@
 using LugenStore.API.Extensions;
 using LugenStore.Application;
 using LugenStore.Infrastructure;
+using LugenStore.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.ApplyMigrations();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
